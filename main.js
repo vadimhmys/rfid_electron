@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { SerialPort } = require('serialport');
+const path = require('path');
 
 let mainWindow;
 let port;
@@ -9,11 +10,18 @@ function createWindow() {
     width: 400,
     height: 200,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
     },
   });
-  mainWindow.loadFile('index.html');
+
+  if (process.env.NODE_ENV === 'development') {
+    mainWindow.loadURL('http://localhost:3000');
+  } else {
+    //mainWindow.loadFile('frontend/build/index.html');
+    mainWindow.loadURL('http://localhost:3000');
+  }
 }
 
 async function findArduinoPort() {
@@ -42,6 +50,9 @@ async function findArduinoPort() {
 app.whenReady().then(() => {
   createWindow();
   findArduinoPort();
+
+  if (process.env.NODE_ENV === 'development') {
+  }
 });
 
 app.on('window-all-closed', () => {
