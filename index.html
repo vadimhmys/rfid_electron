@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>RFID Reader</title>
+</head>
+<body>
+  <h1>RFID Card Code:</h1>
+  <div id="code" style="font-size:24px; font-weight:bold;">Поднесите карточку</div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    ipcRenderer.on('rfid-code', (event, code) => {
+      document.getElementById('code').textContent = code;
+    });
+  </script>
+</body>
+</html>
