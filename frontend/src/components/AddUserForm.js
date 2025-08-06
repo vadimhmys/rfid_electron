@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import '../styles/AddUserForm.css';
 
 function AddUserForm({ onClose, onSave, isOpen }) {
   const [name, setName] = useState('');
