@@ -1,22 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import AddUserForm from './components/AddUserForm';
 
 function App() {
-  const [code, setCode] = useState('Поднесите карточку');
+  const [isFormOpen, setFormOpen] = useState(false);
+  const [users, setUsers] = useState([]);
 
-  useEffect(() => {
-    window.electron.ipcRenderer.on('rfid-code', (event, code) => {
-      setCode(code);
-    });
+  const handleAddUserClick = () => {
+    setFormOpen(true);
+  };
 
-    return () => {
-      window.electron.ipcRenderer.removeAllListeners('rfid-code');
-    };
-  }, []);
+  const handleCloseForm = () => {
+    setFormOpen(false);
+  };
+
+  const handleSaveUser = (userData) => {
+    setUsers([...users, userData]);
+    setFormOpen(false);
+    // Тут можно сохранить пользователя в базу или отправить на сервер
+  };
 
   return (
     <div style={{ padding: '20px' }}>
-      <h1>RFID Card Code:</h1>
-      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{code}</div>
+      <button onClick={handleAddUserClick}>Добавить пользователя</button>
+      <AddUserForm isOpen={isFormOpen} onClose={handleCloseForm} onSave={handleSaveUser} />
     </div>
   );
 }
