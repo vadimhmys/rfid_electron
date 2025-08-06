@@ -31,17 +31,6 @@ function AddUserForm({ onClose, onSave, isOpen }) {
     setCardKey(value);
   };
 
-  // Обновляем валидацию ключа при изменении поля
-  useEffect(() => {
-    validateKey(cardKey);
-  }, [cardKey]);
-
-  // Обновляем состояние валидности формы при изменении всех полей
-  useEffect(() => {
-    const isValid = name.trim() !== '' && surname.trim() !== '' && validateKey(cardKey);
-    setIsFormValid(isValid);
-  }, [name, surname, patronymic, position, cardKey]);
-
   const handleSave = () => {
     if (validateKey(cardKey)) {
       onSave({ name, surname, patronymic, position, cardKey });
@@ -52,6 +41,17 @@ function AddUserForm({ onClose, onSave, isOpen }) {
       setCardKey('');
     }
   };
+
+  // Обновляем валидацию ключа при изменении поля
+  useEffect(() => {
+    validateKey(cardKey);
+  }, [cardKey]);
+
+  // Обновляем состояние валидности формы при изменении всех полей
+  useEffect(() => {
+    const isValid = name.trim() !== '' && surname.trim() !== '' && validateKey(cardKey);
+    setIsFormValid(isValid);
+  }, [name, surname, patronymic, position, cardKey]);
 
   useEffect(() => {
     if (isOpen) {
@@ -64,6 +64,16 @@ function AddUserForm({ onClose, onSave, isOpen }) {
       window.electron.ipcRenderer.removeAllListeners('rfid-code');
     };
   }, [isOpen]);
+
+  useEffect(() => {
+    window.api.onSaveResponse((response) => {
+      if (response.success) {
+        alert('Данные успешно сохранены!');
+      } else {
+        alert('Ошибка: ' + response.message);
+      }
+    });
+  }, []);
 
   if (!isOpen) return null;
 

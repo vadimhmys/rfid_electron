@@ -1,7 +1,9 @@
 const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const { SerialPort } = require('serialport');
 const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
 
+let db;
 let mainWindow;
 let port;
 
@@ -54,11 +56,48 @@ app.whenReady().then(() => {
   createWindow();
   findArduinoPort();
 
+  // Открываем или создаем базу
+  db = new sqlite3.Database('mydatabase.db', (err) => {
+    if (err) {
+      console.error('Ошибка базы:', err);
+    } else {
+      console.log('База данных открыта');
+      // Создаем таблицу, если нет
+      db.run(`CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        surname TEXT,
+        patronymic TEXT,
+        position TEXT,
+        cardKey TEXT
+      )`);
+    }
+  });
+
   if (process.env.NODE_ENV === 'development') {
   }
 });
 
+// Обработка данных из формы
+ipcMain.on('save-user', (event, userData) => {
+  const { name, surname, patronymic, position, cardKey } = userData;
+  db.run(
+    `INSERT INTO users (name, surname, patronymic, position, cardKey) VALUES (?, ?, ?, ?, ?)`,
+    [name, surname, patronymic, position, cardKey],
+    function (err) {
+      if (err) {
+        console.error('Ошибка при вставке:', err);
+        event.reply('save-user-response', { success: false, message: err.message });
+      } else {
+        console.log('Пользователь добавлен, ID:', this.lastID);
+        event.reply('save-user-response', { success: true });
+      }
+    },
+  );
+});
+
 app.on('window-all-closed', () => {
   if (port && port.isOpen) port.close();
+  if (db) db.close();
   if (process.platform !== 'darwin') app.quit();
 });

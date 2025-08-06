@@ -17,6 +17,7 @@ function App() {
     setUsers([...users, userData]);
     setFormOpen(false);
     // Тут можно сохранить пользователя в базу или отправить на сервер
+     window.api.saveUser(userData); // вызов метода из preload.js
   };
 
   return (

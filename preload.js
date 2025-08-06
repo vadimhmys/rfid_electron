@@ -7,3 +7,8 @@ contextBridge.exposeInMainWorld('electron', {
     removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
   },
 });
+
+contextBridge.exposeInMainWorld('api', {
+  saveUser: (userData) => ipcRenderer.send('save-user', userData),
+  onSaveResponse: (callback) => ipcRenderer.on('save-user-response', (event, args) => callback(args))
+});
