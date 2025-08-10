@@ -42,6 +42,27 @@ async function findArduinoPort() {
           const code = bufferData.replace(/[\r\n]+/g, '').trim();
           mainWindow.webContents.send('rfid-code', code);
           bufferData = '';
+
+          // Проверка в базе
+          db.get(`SELECT * FROM users WHERE cardKey = ?`, [code], (err, row) => {
+            if (err) {
+              console.error('DB error:', err);
+              return;
+            }
+            if (row) {
+              // Карточка есть в базе, посылаем команду на Arduino
+              if (port && port.isOpen) {
+                port.write('OPEN_RELAY\n', (err) => {
+                  if (err) {
+                    return console.error('Error sending message:', err.message);
+                  }
+                  console.log('Сommand to open relay sent');
+                });
+              }
+            } else {
+              console.log('The card was not found in the database');
+            }
+          });
         }
       });
     } else {
@@ -59,9 +80,9 @@ app.whenReady().then(() => {
   // Открываем или создаем базу
   db = new sqlite3.Database('mydatabase.db', (err) => {
     if (err) {
-      console.error('Ошибка базы:', err);
+      console.error('Database error:', err);
     } else {
-      console.log('База данных открыта');
+      console.log('The database is open');
       // Создаем таблицу, если нет
       db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -86,10 +107,10 @@ ipcMain.on('save-user', (event, userData) => {
     [name, surname, patronymic, position, cardKey],
     function (err) {
       if (err) {
-        console.error('Ошибка при вставке:', err);
+        console.error('Error while inserting:', err);
         event.reply('save-user-response', { success: false, message: err.message });
       } else {
-        console.log('Пользователь добавлен, ID:', this.lastID);
+        console.log('User added, ID:', this.lastID);
         event.reply('save-user-response', { success: true });
       }
     },
