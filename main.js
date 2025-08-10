@@ -50,6 +50,25 @@ async function findArduinoPort() {
               return;
             }
             if (row) {
+              // Карточка есть — отправляем команду "AUTHORIZED"
+              port.write('AUTHORIZED\n', (err) => {
+                if (err) {
+                  console.error('Error sending AUTHORIZED:', err.message);
+                } else {
+                  console.log('Sent AUTHORIZED');
+                }
+              });
+            } else {
+              // Карточка НЕ найдена — отправляем "UNAUTHORIZED"
+              port.write('UNAUTHORIZED\n', (err) => {
+                if (err) {
+                  console.error('Error sending UNAUTHORIZED:', err.message);
+                } else {
+                  console.log('Sent UNAUTHORIZED');
+                }
+              });
+            }
+            if (row) {
               // Карточка есть в базе, посылаем команду на Arduino
               if (port && port.isOpen) {
                 port.write('OPEN_RELAY\n', (err) => {
